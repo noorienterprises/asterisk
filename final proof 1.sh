@@ -46,8 +46,8 @@ libcurl4-openssl-dev libpq-dev unixodbc-dev libneon27-dev libgmime-2.6-dev liblu
 libxslt1-dev libvpb-dev libmysqlclient-dev libbluetooth-dev libradcli-dev freetds-dev libosptk-dev \
 libjack-jackd2-dev libsnmp-dev libiksemel-dev libcorosync-common-dev libcpg-dev libcfg-dev \
 libpopt-dev libical-dev libspandsp-dev libresample1-dev libc-client2007e-dev binutils-dev \
-libsrtp2-dev libgsm1-dev zlib1g-dev libldap2-dev libcodec2-dev libfftw3-dev libunbound-dev
-|| retry_or_skip_or_exit "Install necessary packages" "apt install -y <package-list>"
+libsrtp2-dev libgsm1-dev zlib1g-dev libldap2-dev libcodec2-dev libfftw3-dev libunbound-dev || \
+retry_or_skip_or_exit "Install necessary packages" "apt install -y <package-list>"
 
 # Check if make is installed, if not, install it
 if ! which make &> /dev/null; then
@@ -56,8 +56,9 @@ fi
 
 # Download and extract Asterisk source
 wget --continue http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18.23.1.tar.gz && \
-tar -xvf asterisk-18.23.1.tar.gz &&
-rm -f asterisk-18.23.1.tar.gz || retry_or_skip_or_exit "Download and extract Asterisk source" "wget --continue http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18.23.1.tar.gz && tar -xvf asterisk-18.23.1.tar.gz && rm -f asterisk-18.23.1.tar.gz"
+tar -xvf asterisk-18.23.1.tar.gz && \
+rm -f asterisk-18.23.1.tar.gz || \
+retry_or_skip_or_exit "Download and extract Asterisk source" "wget --continue http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18.23.1.tar.gz && tar -xvf asterisk-18.23.1.tar.gz && rm -f asterisk-18.23.1.tar.gz"
 
 # Navigate to Asterisk source directory
 cd /usr/src/asterisk-* &&
@@ -66,15 +67,19 @@ cd /usr/src/asterisk-* &&
 contrib/scripts/install_prereq install || retry_or_skip_or_exit "Install Asterisk prerequisites" "contrib/scripts/install_prereq install"
 
 # Configure Asterisk with SIP channel support
-./configure --with-sip --with-pjsip --with-jansson-bundled --with-pjproject-bundled --with-crypto --with-ssl --with-srtp --with-jack --with-speex --with-curl --with-unixodbc --with-libpri --with-opus --with-popt --with-sqlite3 --with-uuid --with-xml2 --with-speexdsp --with-resample --with-pgsql --with-mysql --with-odbcinst --with-neon --with-lua --with-mp3 --with-xslt --with-gsm --with-freetype2 --with-svg --with-memcached --with-ldap --with-pcre --with-crypto --with-odbc && \ || retry_or_skip_or_exit "Configure Asterisk with SIP channel support" "./configure --with-sip --with-pjsip --with-jansson-bundled --with-pjproject-bundled --with-crypto --with-ssl --with-srtp --with-jack --with-speex --with-curl --with-unixodbc --with-libpri --with-opus --with-popt --with-sqlite3 --with-uuid --with-xml2 --with-speexdsp --with-resample --with-pgsql --with-mysql --with-odbcinst --with-neon --with-lua --with-mp3 --with-xslt --with-gsm --with-freetype2 --with-svg --with-memcached --with-ldap --with-pcre --with-crypto --with-odbc"
+./configure --with-sip --with-pjsip --with-jansson-bundled --with-pjproject-bundled --with-crypto --with-ssl \
+--with-srtp --with-jack --with-speex --with-curl --with-unixodbc --with-libpri --with-opus --with-popt \
+--with-sqlite3 --with-uuid --with-xml2 --with-speexdsp --with-resample --with-pgsql --with-mysql --with-odbcinst \
+--with-neon --with-lua --with-mp3 --with-xslt --with-gsm --with-freetype2 --with-svg --with-memcached --with-ldap \
+--with-pcre --with-crypto --with-odbc && \
+retry_or_skip_or_exit "Configure Asterisk with SIP channel support" "./configure --with-sip --with-pjsip --with-jansson-bundled --with-pjproject-bundled --with-crypto --with-ssl --with-srtp --with-jack --with-speex --with-curl --with-unixodbc --with-libpri --with-opus --with-popt --with-sqlite3 --with-uuid --with-xml2 --with-speexdsp --with-resample --with-pgsql --with-mysql --with-odbcinst --with-neon --with-lua --with-mp3 --with-xslt --with-gsm --with-freetype2 --with-svg --with-memcached --with-ldap --with-pcre --with-crypto --with-odbc"
 
 # Select Asterisk options
 make menuselect.makeopts || retry_or_skip_or_exit "Select Asterisk options" "make menuselect.makeopts"
 
 # Build and install Asterisk
-make && make install && make samples && make config \
-|| retry_or_skip_or_exit "Build and install Asterisk" "make && make install && make samples && make config &&"
-
+make && make install && make samples && make config || \
+retry_or_skip_or_exit "Build and install Asterisk" "make && make install && make samples && make config"
 
 # Asterisk installed successfully and optional GoTrunk installation
 read -p "Asterisk installation completed successfully. Do you want to continue with the installation of GoTrunk? (y/n): " continue_gotrunk
@@ -82,31 +87,31 @@ if [ "$continue_gotrunk" = "y" ]; then
     echo "Attempting GoTrunk Installation"
 
     # Check if git is installed, if not, install it
-if ! which git &> /dev/null; then
-    apt install -y git || retry_or_skip_or_exit "Install git" "apt install -y git"
-    git_installed=true
-else
-    git_installed=true
-fi || retry_or_skip_or_exit "Check if git is installed" "which git &> /dev/null"
-
-# Clone and checkout GoTrunk repository
-cd /etc \
-git clone https://github.com/GoTrunk/asterisk-config.git asterisk &&
-cd /etc/asterisk \
-git checkout dynamic-ip || retry_or_skip_or_exit "Clone and checkout GoTrunk repository" "git clone https://github.com/GoTrunk/asterisk-config.git asterisk && cd /etc/asterisk && git checkout dynamic-ip"
-
-        # Display installation completion message or report any errors
-        if [ "$git_installed" = true ] && [ "$checkout_success" = true ]; then
-            echo "Installation completed successfully with GoTrunk."
-        else
-            echo "GoTrunk installation encountered errors. Please review the installation steps to identify the issue. Errors logged at $ERROR_LOG_FILE"
-            echo "Steps with errors:"
-            [ "$git_installed" = false ] && echo "- Install git"
-            # Add other steps here if needed
-        fi
+    if ! which git &> /dev/null; then
+        apt install -y git || retry_or_skip_or_exit "Install git" "apt install -y git"
+        git_installed=true
     else
-        echo "Skipping GoTrunk installation."
-        echo "Asterisk installation completed successfully."
-        exit 0
+        git_installed=true
+    fi || retry_or_skip_or_exit "Check if git is installed" "which git &> /dev/null"
+
+    # Clone and checkout GoTrunk repository
+    cd /etc &&
+    git clone https://github.com/GoTrunk/asterisk-config.git asterisk &&
+    cd /etc/asterisk &&
+    git checkout dynamic-ip || \
+    retry_or_skip_or_exit "Clone and checkout GoTrunk repository" "git clone https://github.com/GoTrunk/asterisk-config.git asterisk && cd /etc/asterisk && git checkout dynamic-ip"
+
+    # Display installation completion message or report any errors
+    if [ "$git_installed" = true ] && [ "$checkout_success" = true ]; then
+        echo "Installation completed successfully with GoTrunk."
+    else
+        echo "GoTrunk installation encountered errors. Please review the installation steps to identify the issue. Errors logged at $ERROR_LOG_FILE"
+        echo "Steps with errors:"
+        [ "$git_installed" = false ] && echo "- Install git"
+        # Add other steps here if needed
     fi
+else
+    echo "Skipping GoTrunk installation."
+    echo "Asterisk installation completed successfully."
+    exit 0
 fi
